@@ -105,8 +105,8 @@ class FirecrawlTools(Toolkit):
             raise ValueError("No URL provided. URL is required for crawling.")
 
         params = {}
-        if self.limit or limit:
-            params["limit"] = self.limit or limit
+        if self.crawl_limit or limit:
+            params["limit"] = self.crawl_limit or limit
             if self.formats:
                 params["scrapeOptions"] = {"formats": self.formats}
         poll_interval: int = 15

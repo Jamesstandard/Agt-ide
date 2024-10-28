@@ -18,6 +18,7 @@ def agent_with_predefined_toolkit(url: str):
     )
 
 
+# TODO: Think about this and validate the feasibility of this support
 # def agent_with_explicit_tools(url: str):
 #     fc_tools = [
 #         FirecrawlTools(map=True, scrape=True).map_website(url, include_subdomains=True, ignore_sitemap=False, limit=10),
@@ -37,9 +38,11 @@ def crawl_example(url: str):
         reasoning=True,
         markdown=True,
     )
+    agent.print_response(f"Crawl and analyze the main use cases and  insights using asynchronous crawling: {url}")
 
 
 if __name__ == "__main__":
     url = "https://www.firecrawl.dev/blog"
     # agent_with_explicit_tools(url)
     agent_with_predefined_toolkit(url)
+    crawl_example(url)
