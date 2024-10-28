@@ -65,11 +65,14 @@ class FirecrawlTools(Toolkit):
                 set(["markdown", "html", "rawHtml", "links", "screenshot", "extract", "screenshot@fullPage"])
             ):
                 params["formats"] = self.formats
-
+            else:
+                raise ValueError(
+                    "Invalid formats provided for scraping. Valid formats are: markdown, html, rawHtml, links, screenshot, extract, screenshot@fullPage"
+                )
         scrape_result = self.app.scrape_url(url, params=params)
         return json.dumps(scrape_result)
 
-    def crawl_website(self, url: str, limit: Optional[int] = None) -> str:
+    def crawl_website(self, url: str, limit: Optional[int]) -> str:
         """Use this function to Crawl a website using Firecrawl.
 
         Args:
@@ -91,7 +94,7 @@ class FirecrawlTools(Toolkit):
         crawl_result = self.app.crawl_url(url, params=params, poll_interval=15)
         return json.dumps(crawl_result)
 
-    def async_crawl_website(self, url: str, limit: Optional[int] = None) -> str:
+    def async_crawl_website(self, url: str, limit: Optional[int]) -> str:
         """Use this function to Asynchronously crawl a website using Firecrawl.
 
         Args:
@@ -107,7 +110,7 @@ class FirecrawlTools(Toolkit):
         params = {}
         if self.crawl_limit or limit:
             params["limit"] = self.crawl_limit or limit
-            if self.formats:
+            if self.formats and set(self.formats).issubset(set(["markdown", "html", "rawHtml", "links", "screenshot"])):
                 params["scrapeOptions"] = {"formats": self.formats}
         poll_interval: int = 15
 
