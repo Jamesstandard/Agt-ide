@@ -2,6 +2,7 @@ import json
 from typing import Optional, List
 import os
 import time
+from phi.utils.log import logger
 
 
 from phi.tools import Toolkit
@@ -12,26 +13,30 @@ except ImportError:
     raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
 
 
+# TODO: Segregate `limit` param into `crawl_limit` and `map_limit` since both serve different purposes
 class FirecrawlTools(Toolkit):
     def __init__(
         self,
         api_key: Optional[str] = None,
         api_url: Optional[str] = None,
         formats: Optional[List[str]] = None,
-        crawl_limit: int = 10,
+        limit: int = 10,
         scrape: bool = True,
         crawl: bool = False,
         async_crawl: bool = False,
         map: bool = False,
-        map_limit: int = 10,
     ):
         super().__init__(name="firecrawl_tools")
 
         self.api_key: Optional[str] = api_key or os.getenv("FIRECRAWL_API_KEY")
+        if self.api_key is None:
+            raise ValueError(
+                "No API key provided. Please set the FIRECRAWL_API_KEY environment variable or pass it as an argument."
+            )
+
         self.api_url: Optional[str] = api_url or os.getenv("FIRECRAWL_API_URL", "https://api.firecrawl.dev")
         self.formats: Optional[List[str]] = formats
-        self.crawl_limit: int = crawl_limit
-        self.map_limit: int = map_limit
+        self.limit: int = limit
         self.app: FirecrawlApp = FirecrawlApp(api_key=self.api_key)
 
         if scrape:
@@ -80,14 +85,14 @@ class FirecrawlTools(Toolkit):
             limit (int): The maximum number of pages to crawl
 
         Returns:
-            The results of the crawling.
+            str: The results of the crawling.
         """
         if url is None:
             raise ValueError("No URL provided. URL is required for crawling.")
 
         params = {}
-        if self.crawl_limit or limit:
-            params["limit"] = self.crawl_limit or limit
+        if self.limit or limit:
+            params["limit"] = self.limit or limit
             if self.formats and set(self.formats).issubset(set(["markdown", "html", "rawHtml", "links", "screenshot"])):
                 params["scrapeOptions"] = {"formats": self.formats}
 
@@ -99,7 +104,7 @@ class FirecrawlTools(Toolkit):
 
         Args:
             url (str): The URL to crawl.
-            limit (int, optional): The maximum number of pages to crawl.
+            limit (int): The maximum number of pages to crawl.
 
         Returns:
             str: The crawl results in JSON format.
@@ -108,8 +113,9 @@ class FirecrawlTools(Toolkit):
             raise ValueError("No URL provided. URL is required for crawling.")
 
         params = {}
-        if self.crawl_limit or limit:
-            params["limit"] = self.crawl_limit or limit
+        logger.info("`limit` parameter will be deprecated in future release with `crawl_limit` parameter.")
+        if self.limit or limit:
+            params["limit"] = self.limit or limit
             if self.formats and set(self.formats).issubset(set(["markdown", "html", "rawHtml", "links", "screenshot"])):
                 params["scrapeOptions"] = {"formats": self.formats}
         poll_interval: int = 15
@@ -181,7 +187,7 @@ class FirecrawlTools(Toolkit):
             url (str): The URL of the website to map.
             include_subdomains (bool): Include subdomains of the website. Defaults to False.
             ignore_sitemap (bool): Ignore the website sitemap when crawling. Defaults to True.
-            limit (int, optional): The maximum number of links to map. Defaults to 10.
+            limit (int): The maximum number of links to map. Defaults to 10.
 
         Returns:
             str: The mapping results in JSON format.
@@ -190,9 +196,9 @@ class FirecrawlTools(Toolkit):
             raise ValueError("No URL provided. URL is required for mapping.")
 
         params = dict()
-
-        if self.map_limit or limit:
-            params["limit"] = self.map_limit or limit
+        logger.info("`limit` parameter will be deprecated in future release with `map_limit` parameter.")
+        if self.limit or limit:
+            params["limit"] = self.limit or limit
 
         params.update({"includeSubdomains": include_subdomains, "ignoreSitemap": ignore_sitemap})
 
